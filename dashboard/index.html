@@ -1,0 +1,295 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nashik Respiratory Health Dashboard</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+:root{--navy:#142b49;--blue:#3979d6;--green:#249b70;--bg:#f3f6fb;--muted:#68778c}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);font-family:Inter,"Segoe UI",Arial,sans-serif;color:#1b2b43}
+header{background:var(--navy);color:white;padding:25px 5%;display:flex;justify-content:space-between;gap:15px;align-items:center;flex-wrap:wrap}
+header h1{margin:0 0 7px;font-size:clamp(21px,3vw,30px)}
+header p{margin:0;color:#cfdbeb;font-size:14px}
+.pill{border:1px solid #54708e;border-radius:22px;padding:9px 14px;font-size:12px}
+main{max-width:1450px;margin:auto;padding:24px}
+.section-title{margin:28px 0 14px;font-size:19px}
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:17px}
+.card{background:white;border:1px solid #e3e9f2;border-radius:15px;padding:20px;box-shadow:0 4px 16px #18365a08;min-width:0}
+.kpi-label{color:var(--muted);font-size:13px}
+.kpi{font-size:30px;font-weight:750;margin:12px 0 6px;overflow-wrap:anywhere}
+.sub{font-size:12px;color:var(--muted);line-height:1.6}
+.chart-grid{display:grid;grid-template-columns:1.5fr 1fr;gap:17px}
+.chart-box{height:300px;position:relative;margin-top:15px}
+h3{font-size:16px;margin:0}
+.status{font-size:13px;color:var(--muted);margin-top:6px}
+.table-wrap{overflow-x:auto;margin-top:14px}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th,td{padding:12px 10px;text-align:left;border-bottom:1px solid #e8edf4}
+th{background:#f7f9fc;color:#50617a}
+.notice{background:#fff8e9;border:1px solid #f0dfb8;border-radius:12px;padding:16px;margin-top:20px;color:#684c1c;font-size:13px;line-height:1.65}
+.error{color:#b42318;font-size:13px}
+footer{text-align:center;padding:24px;color:var(--muted);font-size:12px}
+@media(max-width:850px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.chart-grid{grid-template-columns:1fr}}
+@media(max-width:540px){main{padding:14px}.grid{grid-template-columns:1fr}.card{padding:16px}.chart-box{height:250px}}
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>Nashik Respiratory Health</h1>
+    <p>Air quality · Population context · Hospital health records</p>
+  </div>
+  <span class="pill" id="connection">Connecting to local API…</span>
+</header>
+
+<main>
+  <div class="section-title">Project overview</div>
+  <section class="grid">
+    <article class="card">
+      <div class="kpi-label">Latest available PM2.5 average</div>
+      <div class="kpi" id="pm25">—</div>
+      <div class="sub" id="pmdate">Loading observations…</div>
+    </article>
+    <article class="card">
+      <div class="kpi-label">Monitoring stations with records</div>
+      <div class="kpi" id="stations">—</div>
+      <div class="sub">Stations represented in the available PM2.5 dataset</div>
+    </article>
+    <article class="card">
+      <div class="kpi-label">Hospital records</div>
+      <div class="kpi" id="records">—</div>
+      <div class="sub">Reported hospital-disease-year entries, not unique patients</div>
+    </article>
+    <article class="card">
+      <div class="kpi-label">Ward population reference</div>
+      <div class="kpi" id="population">—</div>
+      <div class="sub">Population total recorded in the supplied ward dataset; reference year requires verification</div>
+    </article>
+    <article class="card">
+      <div class="kpi-label">Daily PM2.5 records</div>
+      <div class="kpi" id="observations">—</div>
+      <div class="sub">Available observations; missing dates are not zero pollution</div>
+    </article>
+    <article class="card">
+      <div class="kpi-label">Geographic units</div>
+      <div class="kpi" id="wards">—</div>
+      <div class="sub">Wards in the supplied demographic dataset; not ward-level sensor coverage</div>
+    </article>
+  </section>
+
+  <div class="section-title">Air-quality analysis</div>
+  <section class="chart-grid">
+    <article class="card">
+      <h3>PM2.5 historical trend</h3>
+      <div class="status">Mean of available station observations per date (µg/m³)</div>
+      <div class="chart-box"><canvas id="trendChart"></canvas></div>
+    </article>
+    <article class="card">
+      <h3>Latest observation by station</h3>
+      <div class="status">Each station uses its own latest available date</div>
+      <div class="chart-box"><canvas id="stationChart"></canvas></div>
+      <div class="sub">Check each station's date before comparing values.</div>
+    </article>
+  </section>
+
+  <div class="section-title">Reported respiratory health records</div>
+  <section class="chart-grid">
+    <article class="card">
+      <h3>Civil Hospital Nashik: reported disease counts</h3>
+      <div class="status">Financial-year counts from the supplied MPCB-labelled source</div>
+      <div class="chart-box"><canvas id="healthChart"></canvas></div>
+    </article>
+    <article class="card">
+      <h3>Records by hospital</h3>
+      <div class="status">Raw reported counts; reporting periods differ</div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Hospital</th><th>Records</th><th>Years</th></tr></thead>
+          <tbody id="hospitalTable"><tr><td colspan="3">Loading…</td></tr></tbody>
+        </table>
+      </div>
+      <div class="sub" style="margin-top:12px">Counts are not combined across hospitals or interpreted as citywide cases.</div>
+    </article>
+  </section>
+
+  <div class="section-title">Hospital data details</div>
+  <article class="card">
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Financial year</th><th>Hospital</th><th>Disease</th><th>Reported patients</th><th>Reporting period</th></tr></thead>
+        <tbody id="healthTable"><tr><td colspan="5">Loading records…</td></tr></tbody>
+      </table>
+    </div>
+  </article>
+
+  <div class="notice">
+    <strong>Research limitations and health-burden status</strong><br>
+    This prototype displays available air-quality observations, ward population references and 21 reported hospital records. These records represent hospital-disease-period entries, not necessarily unique patients or citywide totals. Hospital-reported cases are not confirmed pollution-attributable cases. Environmental observations and hospital reporting periods do not yet align sufficiently for a defensible local burden estimate. The pollution-attributable respiratory health-burden model remains under development. No unvalidated estimates are presented as actual cases.
+  </div>
+  <p class="sub" id="error" role="status"></p>
+</main>
+<footer>Nashik Respiratory Disease Burden Estimation · Prototype v0.1 · Local data API</footer>
+
+<script>
+const $ = id => document.getElementById(id);
+const number = n => Number(n).toLocaleString("en-IN");
+const safe = value => String(value ?? "—").replace(/[&<>"']/g, c =>
+  ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const charts = {};
+
+function drawChart(id, config) {
+  if (charts[id]) charts[id].destroy();
+  charts[id] = new Chart($(id), config);
+}
+
+const commonOptions = {
+  responsive:true, maintainAspectRatio:false,
+  plugins:{legend:{position:"bottom"}}
+};
+
+async function getJSON(path) {
+  const response = await fetch(path);
+  if (!response.ok) throw new Error(path + " returned HTTP " + response.status);
+  return response.json();
+}
+
+async function loadDashboard() {
+  try {
+    const [overview, trends, stations, hospital, comparison] = await Promise.all([
+      getJSON("/api/overview"),
+      getJSON("/api/trends"),
+      getJSON("/api/stations"),
+      getJSON("/api/hospital-records"),
+      getJSON("/api/hospital-comparison")
+    ]);
+
+    $("connection").textContent = "API connected";
+    $("pm25").textContent = overview.latest_pm25_average_ug_m3 == null
+      ? "Unavailable" : Number(overview.latest_pm25_average_ug_m3).toFixed(1) + " µg/m³";
+    $("pmdate").textContent = "Latest available date: " + (overview.latest_available_date || "unavailable");
+    $("stations").textContent = number(overview.station_count);
+    $("records").textContent = number(hospital.record_count);
+    $("population").textContent = number(overview.ward_population_total);
+    $("observations").textContent = number(overview.pm25_record_count);
+    $("wards").textContent = number(overview.ward_count);
+
+    const trendRows = trends.data || [];
+    drawChart("trendChart", {
+      type:"line",
+      data:{
+        labels:trendRows.map(x=>x.date),
+        datasets:[{label:"PM2.5",data:trendRows.map(x=>x.pm25_ug_m3),
+          borderColor:"#3979d6",backgroundColor:"#3979d622",fill:true,
+          pointRadius:0,borderWidth:2,tension:.18,spanGaps:false}]
+      },
+      options:{...commonOptions,scales:{
+        x:{ticks:{maxTicksLimit:8,maxRotation:0}},
+        y:{beginAtZero:true,title:{display:true,text:"µg/m³"}}
+      }}
+    });
+
+    const stationRows = stations.stations || [];
+    drawChart("stationChart", {
+      type:"bar",
+      data:{
+        labels:stationRows.map(x=>x.station_name),
+        datasets:[{label:"Latest PM2.5",data:stationRows.map(x=>x.latest_pm25_ug_m3),
+          backgroundColor:"#36a77a",borderRadius:5}]
+      },
+      options:{...commonOptions,indexAxis:"y",
+        scales:{x:{beginAtZero:true,title:{display:true,text:"µg/m³"}}}}
+    });
+
+    const records = hospital.records || [];
+    const civil = records.filter(x=>x.hospital === "Civil Hospital Nashik");
+    const years = [...new Set(civil.map(x=>x.financial_year))].sort();
+    const diseases = [...new Set(civil.map(x=>x.disease))];
+    const palette = ["#3979d6","#36a77a","#f2a343","#9b7bd3"];
+    drawChart("healthChart", {
+      type:"bar",
+      data:{labels:years,datasets:diseases.map((d,i)=>({
+        label:d,backgroundColor:palette[i%palette.length],
+        data:years.map(y=>{
+          const row=civil.find(x=>x.financial_year===y && x.disease===d);
+          return row ? Number(row.reported_patients) : null;
+        })
+      }))},
+      options:{...commonOptions,scales:{x:{},y:{beginAtZero:true}}}
+    });
+
+    const byHospital = {};
+    records.forEach(r=>{
+      if(!byHospital[r.hospital]) byHospital[r.hospital]={count:0,years:new Set()};
+      byHospital[r.hospital].count++;
+      byHospital[r.hospital].years.add(r.financial_year);
+    });
+    $("hospitalTable").innerHTML = Object.entries(byHospital).map(([name,v])=>
+      `<tr><td>${safe(name)}</td><td>${number(v.count)}</td><td>${safe([...v.years].sort().join(", "))}</td></tr>`
+    ).join("");
+
+    $("healthTable").innerHTML = records.map(r=>
+      `<tr><td>${safe(r.financial_year)}</td><td>${safe(r.hospital)}</td>
+      <td>${safe(r.disease)}</td><td>${number(r.reported_patients)}</td>
+      <td>${safe(r.reporting_period)}</td></tr>`
+    ).join("");
+
+    $("error").textContent = "";
+  } catch (err) {
+    $("connection").textContent = "API connection failed";
+    $("error").textContent =
+      "Could not load the dashboard: " + err.message +
+      ". Check that FastAPI is running and the hospital CSV/API endpoints are available.";
+    console.error(err);
+  }
+}
+loadDashboard();
+</script>
+<section class="card" id="air-quality-coverage">
+  <h2>Air Quality Data Coverage</h2>
+  <p>
+    Coverage is a data-completeness check. It does not prove that
+    pollution caused the reported respiratory cases.
+  </p>
+
+  <div id="coverage-results">Loading coverage information...</div>
+
+  <p id="burden-status">
+    Pollution-attributable health-burden estimation is not yet available.
+  </p>
+</section>
+
+<script>
+async function loadAirQualityCoverage() {
+  const results = document.getElementById("coverage-results");
+  const status = document.getElementById("burden-status");
+
+  try {
+    const response = await fetch("/api/burden-summary");
+    if (!response.ok) throw new Error("API request failed");
+
+    const data = await response.json();
+
+    results.innerHTML = data.air_quality_coverage.map(period => `
+      <div style="margin: 12px 0; padding: 12px; border: 1px solid #ccc; border-radius: 8px;">
+        <strong>${period.label}</strong>
+        <p>Coverage: ${period.coverage_percent}%</p>
+        <p>Observed days: ${period.observed_days} of ${period.expected_days}</p>
+        <p>Status: ${period.status.replaceAll("_", " ")}</p>
+      </div>
+    `).join("");
+
+    status.textContent =
+      "Burden estimate status: " +
+      data.burden_estimate_status.replaceAll("_", " ");
+  } catch (error) {
+    results.textContent = "Coverage information could not be loaded.";
+  }
+}
+
+loadAirQualityCoverage();
+</script>
+</body>
+</html>

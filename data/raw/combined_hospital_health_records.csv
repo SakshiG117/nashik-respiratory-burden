@@ -1,0 +1,23 @@
+
+financial_year,disease,reported_patients,hospital,geography,source,reporting_period
+2022-23,Asthma,1772,Civil Hospital Nashik,Nashik,MPCB CEPI Health Statistics 2024,Annual financial year
+2022-23,Acute respiratory infection,1069,Civil Hospital Nashik,Nashik,MPCB CEPI Health Statistics 2024,Annual financial year
+2022-23,Bronchitis,2141,Civil Hospital Nashik,Nashik,MPCB CEPI Health Statistics 2024,Annual financial year
+2023-24,Asthma,1151,Civil Hospital Nashik,Nashik,MPCB CEPI Health Statistics 2024,Annual financial year
+2023-24,Acute respiratory infection,388,Civil Hospital Nashik,Nashik,MPCB CEPI Health Statistics 2024,Annual financial year
+2023-24,Bronchitis,955,Civil Hospital Nashik,Nashik,MPCB CEPI Health Statistics 2024,Annual financial year
+2024-25,Asthma,668,Civil Hospital Nashik,Nashik,MPCB CEPI Health Statistics 2025,Annual financial year
+2024-25,Acute respiratory infection,311,Civil Hospital Nashik,Nashik,MPCB CEPI Health Statistics 2025,Annual financial year
+2024-25,Bronchitis,492,Civil Hospital Nashik,Nashik,MPCB CEPI Health Statistics 2025,Annual financial year
+2023-24,Asthma,6,ESIC Hospital,Nashik industrial area,MPCB CEPI Health Statistics 2025,December 2023-February 2024
+2023-24,Acute respiratory infection,95,ESIC Hospital,Nashik industrial area,MPCB CEPI Health Statistics 2025,December 2023-February 2024
+2023-24,Bronchitis,19,ESIC Hospital,Nashik industrial area,MPCB CEPI Health Statistics 2025,December 2023-February 2024
+2024-25,Asthma,5,ESIC Hospital,Nashik industrial area,MPCB CEPI Health Statistics 2025,December 2024-February 2025
+2024-25,Acute respiratory infection,74,ESIC Hospital,Nashik industrial area,MPCB CEPI Health Statistics 2025,December 2024-February 2025
+2024-25,Bronchitis,10,ESIC Hospital,Nashik industrial area,MPCB CEPI Health Statistics 2025,December 2024-February 2025
+2023-24,Asthma,48,Life Care Super Speciality Hospital,Nashik industrial area,MPCB CEPI Health Statistics 2025,December 2023-February 2024
+2023-24,Acute respiratory infection,118,Life Care Super Speciality Hospital,Nashik industrial area,MPCB CEPI Health Statistics 2025,December 2023-February 2024
+2023-24,Bronchitis,54,Life Care Super Speciality Hospital,Nashik industrial area,MPCB CEPI Health Statistics 2025,December 2023-February 2024
+2024-25,Asthma,45,Life Care Super Speciality Hospital,Nashik industrial area,MPCB CEPI Health Statistics 2025,December 2024-February 2025
+2024-25,Acute respiratory infection,124,Life Care Super Speciality Hospital,Nashik industrial area,MPCB CEPI Health Statistics 2025,December 2024-February 2025
+2024-25,Bronchitis,58,Life Care Super Speciality Hospital,Nashik industrial area,MPCB CEPI Health Statistics 2025,December 2024-February 2025
